@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+	import SuperBnt from '../../components/SuperBnt.svelte';
+  import RegistrationForm from '../../components/RegistrationForm.svelte';
   let ws : WebSocket;
   let username : string;
   let password : string;
