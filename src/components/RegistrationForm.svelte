@@ -30,7 +30,7 @@
     
             <!-- <button type="submit" class="btn"> Login </button> -->
             <CoolBtn onClick={() => console.log("click")} text="Register" />
-    
+                
             <div class="register-link">
                 <p>Have an account? <a href="#" on:click={onClick}>Sign in</a></p>
             </div>
