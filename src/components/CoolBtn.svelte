@@ -1,5 +1,10 @@
-<button class="blob-btn">
-    Login
+<script lang='ts'>
+  export var text :String = 'Button';
+  export let onClick: () => void;
+</script>
+
+<button on:click={onClick} class="blob-btn">
+    {text}
     <span class="blob-btn__inner">
       <span class="blob-btn__blobs">
         <span class="blob-btn__blob"></span>
@@ -30,6 +35,7 @@
 
 
 .blob-btn {
+  font-family: "Poppins", sans-serif;
   z-index: 1;
   position: relative;
   padding: 10px 46px;

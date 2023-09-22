@@ -7,7 +7,7 @@
 <div class="container">
     <div class="wrapper">
         <form action="">
-            <h1>Sign up</h1>
+            <h1>Login</h1>
             <div class="input-box">
                 <input type="text" placeholder="Username" required/>
                 <i class='bx bxs-user'></i>
@@ -17,22 +17,17 @@
                 <input type="password" placeholder="Password" required/>
                 <i class='bx bxs-lock-alt' ></i>
             </div>
-
-            <div class="input-box">
-                <input type="password" placeholder="Repeat password" required/>
-                <i class='bx bxs-lock-alt' ></i>
-            </div>
     
             <div class="remember-forgot">
-                <!-- <label><input type="checkbox"> Remember me</label> -->
-                <!-- <a href="#">Forgot password?</a> -->
+                <label><input type="checkbox"> Remember me</label>
+                <a href="#">Forgot password?</a>
             </div>
     
             <!-- <button type="submit" class="btn"> Login </button> -->
-            <CoolBtn class="btn" text="Register" />
+            <CoolBtn class="btn" text="Login" />
     
             <div class="register-link">
-                <p>Have an account? <a href="#" on:click={onClick}>Sign in</a></p>
+                <p>Not a member? <a href="#" on:click={onClick}>Signup now</a></p>
             </div>
         </form>
     </div>
