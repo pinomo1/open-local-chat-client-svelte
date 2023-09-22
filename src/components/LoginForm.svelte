@@ -24,7 +24,7 @@
             </div>
     
             <!-- <button type="submit" class="btn"> Login </button> -->
-            <CoolBtn class="btn" text="Login" />
+            <CoolBtn onClick={() => console.log("click")} text="Login" />
     
             <div class="register-link">
                 <p>Not a member? <a href="#" on:click={onClick}>Signup now</a></p>
