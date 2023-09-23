@@ -1,74 +1,103 @@
 <script lang="ts">
-    import { onMount, afterUpdate } from 'svelte';
-  
-    let message: string = ''; // Store the user's input message
-    let chatMessages: { text: string; sender: string; avatar: string }[] = [];
-    let chatContainer: HTMLElement | null = null; // Reference to the chat container
-  
-    // Function to handle sending a message
-    function sendMessage() {
-      if (message.trim() !== '') {
-        chatMessages = [
-          ...chatMessages,
-          {
-            text: message,
-            sender: 'FontomO4ka',
-            avatar: 'https://cdn.fastcup.net/avatars/users/2151159_8194ng35d.webp',
-          },
-        ];
-        message = '';
-      }
+  import { onMount, afterUpdate } from 'svelte';
+
+  const localStorageKey = 'ipAddress';
+  const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+  const token = localStorage.getItem('token');
+  let messages: { sender: string; text: string }[] = [];
+  let message = '';
+  let chatContainer: HTMLElement | null = null;
+
+  let ws: WebSocket;
+
+  onMount(() => {
+    ws = new WebSocket(wsUrl);
+    ws.addEventListener('open', handleOpen);
+    ws.addEventListener('message', handleMessage);
+  });
+
+  function handleOpen() {
+    const joinMessage = `join ${token}`;
+    ws.send(joinMessage);
+  }
+
+  function handleMessage(event: MessageEvent) {
+    const message = event.data;
+    if (message.startsWith('0')) {
+      const errorMessage = message.slice(2);
+      alert(`Error: ${errorMessage}`);
+      window.location.href = '/login';
+    } else if (message.startsWith('1')) {
+      // Do nothing
+    } else {
+      let sender = message.slice(0, message.indexOf(':'));
+      let text = message.slice(message.indexOf(':') + 2);
+      let chatMessage = { sender, text };
+      messages = [...messages, chatMessage];
     }
-  
-    // Function to send a message when the Enter key is pressed
-    function handleKeyPress(event: KeyboardEvent) {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault(); // Prevent the Enter key from adding a new line
-        sendMessage();
-      }
+  }
+
+  function handleSend() {
+    if (message === '') {
+      return;
     }
-  
-    // Scroll to the bottom of the chat messages on updates
-    function scrollToBottom() {
-      if (chatContainer) {
+    if (message.length > 1024) {
+      alert('Message is too long');
+      return;
+    }
+    const chatMessage = `chat ${token} ${message}`;
+    ws.send(chatMessage);
+    message = '';
+  }
+
+  function handleLogout() {
+    const logoutMessage = `logout ${token}`;
+    localStorage.removeItem('token');
+    ws.send(logoutMessage);
+    window.location.href = '/login';
+  }
+
+  function handleKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); // Prevent the Enter key from adding a new line
+      handleSend();
+    }
+  }
+
+  function scrollToBottom() {
+    if (chatContainer) {
+      if (chatContainer.scrollHeight - chatContainer.scrollTop < 100) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }
-  
-    onMount(scrollToBottom); // Initial scroll to the bottom
-  
-    afterUpdate(scrollToBottom); // Scroll to the bottom whenever chatMessages update
-  </script>
+  }
+
+  afterUpdate(scrollToBottom);
+</script>
   
   <div class="chat-container">
     <div class="chat-header">
       <div class="chat-header-text">Global Chat</div>
+      <div class="logout-btn">
+        <a href="#top" on:click={handleLogout}>Logout</a>
+      </div>
     </div>
     <div class="chat-messages" bind:this={chatContainer}>
-      {#each chatMessages as chatMessage, index (index)}
-        {#if index === 0 || chatMessage.sender !== chatMessages[index - 1].sender}
+      {#each messages as chatMessage, index (index)}
           <div class="message" key={index}>
-            <div class="sender-avatar">
-              <img src={chatMessage.avatar} alt="Sender Avatar" />
-            </div>
             <div class="message-content">
-              <div class="sender-name">{chatMessage.sender}</div>
+              {#if index === 0 || chatMessage.sender !== messages[index - 1].sender}
+                <div class="sender-name">{chatMessage.sender}</div>
+              {/if}
               <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
             </div>
-            
           </div>
-          
-        {:else}
-        <div style="padding: 3px; margin: 3px; padding-left: 45px;" class="message" key={index}>
-          <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
-        </div>
-        {/if}
       {/each}
     </div>
     <div class="input-container-container">
       <div class="input-container">
         <textarea rows="2" placeholder="Type a message..." bind:value={message} on:keydown={handleKeyPress}></textarea>
-        <a class="send-btn" href="#" on:click={sendMessage}>
+        <a class="send-btn" href="#top" on:click={handleSend}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -136,19 +165,6 @@
         white-space: pre-wrap;
         overflow-wrap: break-word;
         word-break: break-all;
-    }
-    .sender-avatar {
-      margin-right: 10px;
-      border-radius: 50%; /* Make the sender's avatar round */
-      overflow: hidden;
-      width: 32px;
-      height: 32px;
-    }
-  
-    .sender-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
   
     .message-content {
@@ -243,7 +259,17 @@
       backdrop-filter: blur(20px);
     }
   
-
+    .logout-btn {
+      float: right;
+      padding: 5px;
+      padding-left: 10px;
+      padding-right: 10px;
+      border-radius: 5px;
+      background-color: #40444b;
+      color: white;
+      text-decoration: none;
+      transition: all 0.2s ease-in-out;
+    }
   </style>
   
   

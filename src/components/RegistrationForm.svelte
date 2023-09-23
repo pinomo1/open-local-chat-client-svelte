@@ -1,38 +1,66 @@
 <script lang=ts>
-	import CoolBtn from "./CoolBtn.svelte";
+	import AnimatedButton from "./AnimatedButton.svelte";
+    import { onMount } from 'svelte';
+  
+    const localStorageKey = 'ipAddress';
+    const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+    let username = '';
+    let password = '';
+    let confirmPassword = '';
 
-    export let username: string;
-    export let onClick: () => void;
+    let ws: WebSocket;
+
+    onMount(() => {
+        ws = new WebSocket(wsUrl);
+        ws.addEventListener('message', handleMessage);
+    });
+
+    function handleMessage(event: MessageEvent) {
+        const message = event.data;
+        if (message.startsWith('0')) {
+        const errorCode = message.slice(2);
+        alert(`Error: ${errorCode}`);
+        } else if (message.startsWith('1')) {
+        window.location.href = '/login';
+        }
+    }
+
+    function handleRegister() {
+        if (password !== confirmPassword) {
+        console.error('Error: Passwords do not match');
+        return;
+        }
+        const message = `register ${username} ${password}`;
+        ws.send(message);
+    }
+
+    function handleLogin() {
+        window.location.href = '/login';
+    }
 </script>
 <div class="container">
     <div class="wrapper">
         <form action="">
             <h1>Sign up</h1>
             <div class="input-box">
-                <input type="text" placeholder="Username" required/>
+                <input type="text" placeholder="Username" bind:value={username} required/>
                 <i class='bx bxs-user'></i>
             </div>
     
             <div class="input-box">
-                <input type="password" placeholder="Password" required/>
+                <input type="password" placeholder="Password" bind:value={password} required/>
                 <i class='bx bxs-lock-alt' ></i>
             </div>
 
             <div class="input-box">
-                <input type="password" placeholder="Repeat password" required/>
+                <input type="password" placeholder="Confirm password" bind:value={confirmPassword} required/>
                 <i class='bx bxs-lock-alt' ></i>
             </div>
-    
-            <div class="remember-forgot">
-                <!-- <label><input type="checkbox"> Remember me</label> -->
-                <!-- <a href="#">Forgot password?</a> -->
-            </div>
-    
-            <!-- <button type="submit" class="btn"> Login </button> -->
-            <CoolBtn onClick={() => console.log("click")} text="Register" />
+            
+            <AnimatedButton onClick={handleRegister} text="Register" />
                 
             <div class="register-link">
-                <p>Have an account? <a href="#" on:click={onClick}>Sign in</a></p>
+                <p>Already have an account? <a href="#top" on:click={handleLogin}>Login</a></p>
             </div>
         </form>
     </div>
@@ -108,27 +136,6 @@
         top: 50%;
         transform: translateY(-50%);
         font-size: 20px;
-    }
-
-    .wrapper .remember-forgot{
-        display: flex;
-        justify-content: space-between;
-        font-size:14.5px;
-        margin: -15px 0 15px;
-    }
-
-    .remember-forgot label input{
-        accent-color: #fff;
-        margin-right: 3px;
-    }
-
-    .remember-forgot a{
-        color: #fff;
-        text-decoration: none;
-    }
-
-    .remember-forgot a:hover{
-        text-decoration: underline;
     }
 
     .wrapper .btn{

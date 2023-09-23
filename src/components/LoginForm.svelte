@@ -1,33 +1,60 @@
 <script lang=ts>
-	import CoolBtn from "./CoolBtn.svelte";
+	import AnimatedButton from "./AnimatedButton.svelte";
+    import { onMount } from 'svelte';
+  
+    const localStorageKey = 'ipAddress';
+    const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+    let username = '';
+    let password = '';
 
-    export let username: string;
-    export let onClick: () => void;
+    let ws: WebSocket;
+    let token: string;
+
+    onMount(() => {
+        ws = new WebSocket(wsUrl);
+        ws.addEventListener('message', handleMessage);
+    });
+
+    function handleMessage(event: MessageEvent) {
+        const message = event.data;
+        if (message.startsWith('0')) {
+        const errorCode = message.slice(2);
+        alert(`Error: ${errorCode}`);
+        } else if (message.startsWith('1')) {
+        token = message.slice(2);
+        localStorage.setItem('token', token);
+        window.location.href = '/chat';
+        }
+    }
+
+    function handleLogin() {
+        const message = `login ${username} ${password}`;
+        ws.send(message);
+    }
+
+    function handleRegister() {
+        window.location.href = '/register';
+    }
 </script>
+
 <div class="container">
     <div class="wrapper">
         <form action="">
             <h1>Login</h1>
             <div class="input-box">
-                <input type="text" placeholder="Username" required/>
+                <input type="text" placeholder="Username" bind:value={username} required/>
                 <i class='bx bxs-user'></i>
             </div>
     
             <div class="input-box">
-                <input type="password" placeholder="Password" required/>
+                <input type="password" placeholder="Password" bind:value={password} required/>
                 <i class='bx bxs-lock-alt' ></i>
             </div>
-    
-            <div class="remember-forgot">
-                <label><input type="checkbox"> Remember me</label>
-                <a href="#">Forgot password?</a>
-            </div>
-    
-            <!-- <button type="submit" class="btn"> Login </button> -->
-            <CoolBtn onClick={() => console.log("click")} text="Login" />
+
+            <AnimatedButton onClick={handleLogin} text="Login" />
     
             <div class="register-link">
-                <p>Not a member? <a href="#" on:click={onClick}>Signup now</a></p>
+                <p>Don't have an account? <a href="#top" on:click={handleRegister}>Register</a></p>
             </div>
         </form>
     </div>
@@ -104,28 +131,6 @@
         transform: translateY(-50%);
         font-size: 20px;
     }
-
-    .wrapper .remember-forgot{
-        display: flex;
-        justify-content: space-between;
-        font-size:14.5px;
-        margin: -15px 0 15px;
-    }
-
-    .remember-forgot label input{
-        accent-color: #fff;
-        margin-right: 3px;
-    }
-
-    .remember-forgot a{
-        color: #fff;
-        text-decoration: none;
-    }
-
-    .remember-forgot a:hover{
-        text-decoration: underline;
-    }
-
     .wrapper .btn{
         width: 100%;
         height: 45px;
