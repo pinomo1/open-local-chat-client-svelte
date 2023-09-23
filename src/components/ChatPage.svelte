@@ -66,7 +66,7 @@
 
   function scrollToBottom() {
     if (chatContainer) {
-      if (chatContainer.scrollHeight - chatContainer.scrollTop < 100) {
+      if (chatContainer.scrollHeight - chatContainer.scrollTop < 1000) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }
