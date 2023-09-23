@@ -1,5 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import SuperBnt from '../../components/SuperBnt.svelte';
+    import RegistrationForm from '../../components/RegistrationForm.svelte';
   
     const localStorageKey = 'ipAddress';
     const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
@@ -34,6 +36,13 @@
     }
   
     function handleSend() {
+      if (message === '') {
+        return;
+      }
+      if (message.length > 1024) {
+        alert('Message is too long');
+        return;
+      }
       const chatMessage = `chat ${token} ${message}`;
       ws.send(chatMessage);
       message = '';
