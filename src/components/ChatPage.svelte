@@ -33,6 +33,9 @@
       let sender = message.slice(0, message.indexOf(':'));
       let text = message.slice(message.indexOf(':') + 2);
       let chatMessage = { sender, text };
+      if (messages.length > 1024) {
+        messages = messages.slice(512);
+      }
       messages = [...messages, chatMessage];
     }
   }
@@ -60,6 +63,7 @@
   function handleKeyPress(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault(); // Prevent the Enter key from adding a new line
+      scrollToBottom();
       handleSend();
     }
   }
