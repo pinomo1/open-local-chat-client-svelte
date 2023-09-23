@@ -1,6 +1,14 @@
 <script lang="ts">
+  
+  document.title = 'Chat ';
   import { onMount, afterUpdate } from 'svelte';
+  import gravatar from 'gravatar';
 
+  function generateProfilePicture(username: string) {
+    // Generate a Gravatar URL based on the user's email (you can customize this logic)
+    const emailHash = gravatar.url('user@example.com', { s: '200', d: 'identicon', r: 'pg' });
+    return emailHash;
+  }
   const localStorageKey = 'ipAddress';
   const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
   const token = localStorage.getItem('token');
@@ -16,6 +24,7 @@
     ws.addEventListener('message', handleMessage);
   });
 
+  
   function handleOpen() {
     const joinMessage = `join ${token}`;
     ws.send(joinMessage);
@@ -76,6 +85,26 @@
     }
   }
 
+  let isHovered = false;
+
+function showHoverPanel() {
+  isHovered = true;
+}
+
+function hideHoverPanel() {
+  isHovered = false;
+}
+
+function handleReact(sender: string) {
+  // Handle react action
+  alert(`React to message from ${sender}`);
+}
+
+function handleReply(sender: string) {
+  // Handle reply action
+  alert(`Reply to message from ${sender}`);
+}
+
   afterUpdate(scrollToBottom);
 </script>
   
@@ -83,19 +112,50 @@
     <div class="chat-header">
       <div class="chat-header-text">Global Chat</div>
       <div class="logout-btn">
-        <a href="#top" on:click={handleLogout}>Logout</a>
+        <a href="#top" on:click={handleLogout}>Logout
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+          </svg>
+        </a>
+        
       </div>
     </div>
     <div class="chat-messages" bind:this={chatContainer}>
       {#each messages as chatMessage, index (index)}
-          <div class="message" key={index}>
-            <div class="message-content">
-              {#if index === 0 || chatMessage.sender !== messages[index - 1].sender}
-                <div class="sender-name">{chatMessage.sender}</div>
+        {#if index === 0 || chatMessage.sender !== messages[index - 1].sender}
+          <div class="message" key={index} role="button" tabindex="0" aria-label="Message Options" on:mouseenter={showHoverPanel} > 
+            <div class="sender-avatar">
+              {#if chatMessage.sender === 'System'}
+              <img src={'https://cdn-icons-png.flaticon.com/512/305/305098.png'} alt="Sender Avatar" />
+              {:else}
+              <img src={generateProfilePicture(chatMessage.sender)} alt="Sender Avatar" />
               {/if}
-              <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
             </div>
+            <div class="message-content">
+              <div class="sender-name">{chatMessage.sender}</div>
+              <div class="message-text" style="white-space: pre-line; padding-top: 2px;position:relative; top:3px">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
+            </div>
+            {#if isHovered}
+              <div class="hover-panel">
+                <button on:click={() => handleReact(chatMessage.sender)}>React</button>
+                <button on:click={() => handleReply(chatMessage.sender)}>Reply</button>
+              </div>
+            {/if}
           </div>
+          
+        {:else}
+        
+        <div style="padding: 3px; margin: 3px; padding-left: 6.55vh;" class="message" key={index}>
+          <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
+          {#if isHovered}
+              <div class="hover-panel">
+                <button on:click={() => handleReact(chatMessage.sender)}>React</button>
+                <button on:click={() => handleReply(chatMessage.sender)}>Reply</button>
+              </div>
+            {/if}
+        </div>
+        {/if}
       {/each}
     </div>
     <div class="input-container-container">
@@ -138,7 +198,7 @@
       /* padding: 10px; */
       overflow-y: auto;
       overflow-x: hidden; /* Disable horizontal scroll */
-      background-color: #383c40;
+      background-color: transparent;
       scrollbar-width: thin;
       scrollbar-color: #202225 #202225; /* Scrollbar color and track color */
     }
@@ -156,9 +216,11 @@
     .message {
       margin: 5px 0;
       padding: 5px;
+      padding-left: 2vh;
       margin-left: 0 !important;
       display: flex;
       align-items: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
   
     .message:hover {
@@ -257,11 +319,14 @@
     }
     .chat-header {
       /* background-color: #313236; */
+      display: flex;
+      justify-content: space-between;
       padding: 10px;
       box-shadow: #36393f 0px 0px 100px 0.5px;
       background: transparent;
       backdrop-filter: blur(20px);
     }
+    
   
     .logout-btn {
       float: right;
@@ -273,7 +338,81 @@
       color: white;
       text-decoration: none;
       transition: all 0.2s ease-in-out;
+      cursor: pointer;
     }
+    .logout-btn:hover {
+      background-color: #202225;
+      transition: all 0.2s ease-in-out;
+    }
+    .logout-btn:active {
+      background-color: #202225;
+      transform: scale(0.9);
+      transition: all 0.2s ease-in-out;
+    }
+      
+    
+    .logout-btn a{
+      color: white;
+      text-decoration: none;
+    }
+    .logout-btn a svg{
+      color: white;
+      text-decoration: none;
+      position: relative;
+      top: 3px;
+      left: 4px;
+    }
+
+    .sender-avatar {
+      margin-right: 10px;
+      border-radius: 50%; 
+      overflow: hidden;
+      width: 32px;
+      height: 32px;
+    }
+  
+    .sender-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Hover panel styles */
+.hover-panel {
+  position: relative;
+  top: -20px; 
+  right: -50px; 
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  margin: 0;
+  z-index: 1;
+}
+
+.hover-panel button {
+  background-color: #40444b;
+  border: none;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.hover-panel button:hover {
+  background-color: #202225;
+}
+
+/* Show/hide hover panel on hover */
+.message:hover .hover-panel {
+  display: flex
+}
+
+/* Hide the hover panel by default */
+.hover-panel {
+  display: none;
+}
   </style>
   
   
