@@ -219,8 +219,8 @@
   
     .send-btn {
       cursor: pointer;
-      padding-top: 12px;
-      padding-bottom: 12px;
+      padding-top: 9px;
+      padding-bottom: 9px;
       padding-right: 15px;
       background-color: #40444b;
       border: none;
