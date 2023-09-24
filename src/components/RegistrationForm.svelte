@@ -1,4 +1,5 @@
 <script lang=ts>
+    import { onMount } from 'svelte';
 	import AnimatedButton from "./AnimatedButton.svelte";
     import axios from 'axios';
   
@@ -8,6 +9,25 @@
     let username = '';
     let password = '';
     let confirmPassword = '';
+
+    function getCheckUrl() {
+        return 'http://' + url + ':9001/api/canaccess';
+    }
+
+    onMount(() => {
+        let siteUrl = getCheckUrl();
+        axios.post(siteUrl, {})
+        .then((response) => {
+            console.log(response);
+            if (response.status !== 200) {
+                window.location.href = '/';
+                return;
+            }
+        })
+        .catch((error) => {
+            window.location.href = '/';
+        });
+    });
 
     function handleRegister() {
         if (password !== confirmPassword) {

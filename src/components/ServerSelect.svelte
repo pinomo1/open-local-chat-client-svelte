@@ -21,13 +21,15 @@
       return window.location.hostname;
     }
 
-    function getCheckUrl() {
-        console.log(getSiteUrl());
+    function getCheckUrl(url?: string) {
+        if (url) {
+            return 'http://' + url + ':9001/api/canaccess';
+        }
       return 'http://' + getSiteUrl() + ':9001/api/canaccess';
     }
 
     onMount(() => {
-        ipAddress = localStorage.getItem(localStorageKey) || '';
+      ipAddress = localStorage.getItem(localStorageKey) || '';
       let siteUrl = getCheckUrl();
       axios.post(siteUrl, {})
         .then((response) => {
@@ -47,8 +49,18 @@
     }
 
     function saveIpAddress() {
-      localStorage.setItem(localStorageKey, ipAddress);
-      window.location.href = '/login';
+      let siteUrl = getCheckUrl(ipAddress);
+        axios.post(siteUrl, {})
+            .then((response) => {
+                console.log(response);
+                if (response.status === 200) {
+                    localStorage.setItem(localStorageKey, ipAddress);
+                    window.location.href = '/login';
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 </script>
 
