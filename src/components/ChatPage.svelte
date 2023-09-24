@@ -9,6 +9,7 @@
   let messages: { username: string; message: string }[] = [];
   let message = '';
   let chatContainer: HTMLElement | null = null;
+  let users: string[] = [];
 
   let ws = io(wsUrl, { transports : ['websocket'] });
   ws.on("connect", handleOpen);
@@ -16,6 +17,11 @@
   ws.on("joined", handleJoin)
   ws.on("left", handleLeft)
   ws.on("error", handleError)
+  ws.on("users", handleUsers)
+
+  function handleUsers(users: string[]) {
+    users = users;
+  }
 
   function handleOpen() {
     ws.emit("join", token);
