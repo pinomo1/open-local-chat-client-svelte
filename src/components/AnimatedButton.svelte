@@ -162,4 +162,11 @@
     transform: translateZ(0) scale(1.4);
   }
 }
+
+svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 </style>

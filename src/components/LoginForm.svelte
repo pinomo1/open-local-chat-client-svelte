@@ -32,6 +32,10 @@
     function handleRegister() {
         window.location.href = '/register';
     }
+
+    function handleServerChange() {
+        window.location.href = '/';
+    }
 </script>
 
 <div class="container">
@@ -52,6 +56,7 @@
     
             <div class="register-link">
                 <p>Don't have an account? <a href="#top" on:click={handleRegister}>Register</a></p>
+                <p><a href="#top" on:click={handleServerChange}>Change server</a></p>
             </div>
         </form>
     </div>
