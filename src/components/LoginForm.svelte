@@ -1,35 +1,32 @@
 <script lang=ts>
 	import AnimatedButton from "./AnimatedButton.svelte";
-    import { onMount } from 'svelte';
+    import axios from 'axios';
   
     const localStorageKey = 'ipAddress';
-    const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+    const wsUrl = `http://${localStorage.getItem(localStorageKey)}:9001/api/login`;
     let username = '';
     let password = '';
 
-    let ws: WebSocket;
     let token: string;
 
-    onMount(() => {
-        ws = new WebSocket(wsUrl);
-        ws.addEventListener('message', handleMessage);
-    });
-
-    function handleMessage(event: MessageEvent) {
-        const message = event.data;
-        if (message.startsWith('0')) {
-        const errorCode = message.slice(2);
-        alert(`Error: ${errorCode}`);
-        } else if (message.startsWith('1')) {
-        token = message.slice(2);
-        localStorage.setItem('token', token);
-        window.location.href = '/chat';
-        }
-    }
-
     function handleLogin() {
-        const message = `login ${username} ${password}`;
-        ws.send(message);
+        axios.post(wsUrl, {
+            username: username,
+            password: password
+        })
+        .then((response) => {
+            console.log(response);
+            if (response.status !== 200) {
+                console.log(response.data.error)
+                return;
+            }
+            token = response.data.token;
+            localStorage.setItem('token', token);
+            window.location.href = '/chat';
+        })
+        .catch((error) => {
+            console.log(error);
+        });
     }
 
     function handleRegister() {

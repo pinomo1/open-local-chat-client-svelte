@@ -1,55 +1,49 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from 'svelte';
+  import { afterUpdate } from 'svelte';
+  import { io } from 'socket.io-client';
 
   const localStorageKey = 'ipAddress';
   const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
   const token = localStorage.getItem('token');
-  let messages: { sender: string; text: string }[] = [];
+  let messages: { username: string; message: string }[] = [];
   let message = '';
   let chatContainer: HTMLElement | null = null;
 
-  let ws: WebSocket;
-
-  onMount(() => {
-    ws = new WebSocket(wsUrl);
-    ws.addEventListener('open', handleOpen);
-    ws.addEventListener('message', handleMessage);
-  });
+  let ws = io(wsUrl, { transports : ['websocket'] });
+  ws.on("connect", handleOpen);
+  ws.on("chat", handleMessage);
+  ws.on("joined", handleJoin)
+  ws.on("left", handleLeft)
+  ws.on("error", handleError)
 
   function handleOpen() {
-    const joinMessage = `join ${token}`;
-    ws.send(joinMessage);
+    ws.emit("join", token);
   }
 
-  function handleMessage(event: MessageEvent) {
-    const message = event.data;
-    if (message.startsWith('0')) {
-      const errorMessage = message.slice(2);
-      alert(`Error: ${errorMessage}`);
+  function handleError(error: string) {
+    if (error === "Invalid token") {
       window.location.href = '/login';
-    } else if (message.startsWith('1')) {
-      // Do nothing
-    } else {
-      let sender = message.slice(0, message.indexOf(':'));
-      let text = message.slice(message.indexOf(':') + 2);
-      let chatMessage = { sender, text };
-      if (messages.length > 1024) {
-        messages = messages.slice(512);
-      }
-      messages = [...messages, chatMessage];
     }
+  }
+
+  function handleJoin(username: string) {
+    handleMessage("System", `${username} joined the chat`);
+  }
+
+  function handleLeft(username: string) {
+    handleMessage("System", `${username} left the chat`);
+  }
+
+  function handleMessage(username: string, message: string) {
+    let chatMessage = { username, message };
+    if (messages.length > 1024) {
+      messages = messages.slice(256);
+    }
+    messages = [...messages, chatMessage];
   }
 
   function handleSend() {
-    if (message === '') {
-      return;
-    }
-    if (message.length > 1024) {
-      alert('Message is too long');
-      return;
-    }
-    const chatMessage = `chat ${token} ${message}`;
-    ws.send(chatMessage);
+    ws.emit("chat", message);
     message = '';
   }
 
@@ -90,10 +84,10 @@
       {#each messages as chatMessage, index (index)}
           <div class="message" key={index}>
             <div class="message-content">
-              {#if index === 0 || chatMessage.sender !== messages[index - 1].sender}
-                <div class="sender-name">{chatMessage.sender}</div>
+              {#if index === 0 || chatMessage.username !== messages[index - 1].username}
+                <div class="sender-name">{chatMessage.username}</div>
               {/if}
-              <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
+              <div class="message-text" style="white-space: pre-line;">{@html chatMessage.message.replace(/\n/g, "<br>")}</div>
             </div>
           </div>
       {/each}
