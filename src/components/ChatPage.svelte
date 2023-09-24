@@ -19,8 +19,8 @@
   ws.on("error", handleError)
   ws.on("users", handleUsers)
 
-  function handleUsers(users: string[]) {
-    users = users;
+  function handleUsers(newUsers: string[]) {
+    users = newUsers;
   }
 
   function handleOpen() {
@@ -55,9 +55,12 @@
   }
 
   function handleLogout() {
-    const logoutMessage = `logout ${token}`;
+    ws.emit("logout");
     localStorage.removeItem('token');
-    ws.send(logoutMessage);
+    handleDisconnect();
+  }
+
+  function handleDisconnect() {
     window.location.href = '/login';
   }
 
@@ -85,6 +88,9 @@
       <div class="chat-header-text">Global Chat - {url}</div>
       <div class="logout-btn">
         <a href="#top" on:click={handleLogout}>Logout</a>
+      </div>
+      <div class="logout-btn">
+        <a href="#top" on:click={handleDisconnect}>Disconnetct</a>
       </div>
     </div>
     <div class="chat-messages" bind:this={chatContainer}>
