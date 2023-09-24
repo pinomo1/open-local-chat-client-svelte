@@ -6,7 +6,7 @@
 
   function generateProfilePicture(username: string) {
     // Generate a Gravatar URL based on the user's email (you can customize this logic)
-    const emailHash = gravatar.url('user@example.com', { s: '200', d: 'identicon', r: 'pg' });
+    const emailHash = gravatar.url(username, { s: '200', d: 'identicon', r: 'pg' });
     return emailHash;
   }
   const localStorageKey = 'ipAddress';
@@ -138,7 +138,7 @@ function handleReply(sender: string) {
             </div>
             {#if isHovered}
               <div class="hover-panel">
-                <button on:click={() => handleReact(chatMessage.sender)}>React</button>
+                <!-- <button on:click={() => handleReact(chatMessage.sender)}>React</button> -->
                 <button on:click={() => handleReply(chatMessage.sender)}>Reply</button>
               </div>
             {/if}
@@ -146,19 +146,30 @@ function handleReply(sender: string) {
           
         {:else}
         
-        <div style="padding: 3px; margin: 3px; padding-left: 6.55vh;" class="message" key={index}>
+        <div style="padding: 3px; margin: 3px; padding-left: 6.55vh;" class="message" key={index} role="button" tabindex="0" aria-label="Message Options" on:mouseenter={showHoverPanel} >
           <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
           {#if isHovered}
-              <div class="hover-panel">
-                <button on:click={() => handleReact(chatMessage.sender)}>React</button>
-                <button on:click={() => handleReply(chatMessage.sender)}>Reply</button>
+              <div style= "margin:0; padding:0" class="hover-panel">
+                <!-- <button on:click={() => handleReact(chatMessage.sender)}>React</button> -->
+                <button on:click={() => handleReply(chatMessage.sender)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-reply-all-fill" viewBox="0 0 16 16">
+                    <path d="M8.021 11.9 3.453 8.62a.719.719 0 0 1 0-1.238L8.021 4.1a.716.716 0 0 1 1.079.619V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
+                    <path d="M5.232 4.293a.5.5 0 0 1-.106.7L1.114 7.945a.5.5 0 0 1-.042.028.147.147 0 0 0 0 .252.503.503 0 0 1 .042.028l4.012 2.954a.5.5 0 1 1-.593.805L.539 9.073a1.147 1.147 0 0 1 0-1.946l3.994-2.94a.5.5 0 0 1 .699.106z"/>
+                  </svg>
+                </button>
               </div>
-            {/if}
+          {/if}
         </div>
         {/if}
       {/each}
     </div>
     <div class="input-container-container">
+      
+
+
+      <div style="padding-left: 2vh; display:flex" class="">
+        <p>Replied to</p>
+      </div>
       <div class="input-container">
         <textarea rows="2" placeholder="Type a message..." bind:value={message} on:keydown={handleKeyPress}></textarea>
         <a class="send-btn" href="#top" on:click={handleSend}>
@@ -201,6 +212,7 @@ function handleReply(sender: string) {
       background-color: transparent;
       scrollbar-width: thin;
       scrollbar-color: #202225 #202225; /* Scrollbar color and track color */
+      padding-bottom: 5vh;
     }
   
     .chat-messages::-webkit-scrollbar {
@@ -382,7 +394,7 @@ function handleReply(sender: string) {
   position: relative;
   top: -20px; 
   right: -50px; 
-  background-color: rgba(0, 0, 0, 0.3);
+  /* background-color: rgba(0, 0, 0, 0.3); */
   border-radius: 5px;
   display: flex;
   gap: 5px;
