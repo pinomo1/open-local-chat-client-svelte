@@ -3,7 +3,8 @@
   import { io } from 'socket.io-client';
 
   const localStorageKey = 'ipAddress';
-  const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+  const url = localStorage.getItem(localStorageKey);
+  const wsUrl = `ws://${url}:9001`;
   const token = localStorage.getItem('token');
   let messages: { username: string; message: string }[] = [];
   let message = '';
@@ -75,7 +76,7 @@
   
   <div class="chat-container">
     <div class="chat-header">
-      <div class="chat-header-text">Global Chat</div>
+      <div class="chat-header-text">Global Chat - {url}</div>
       <div class="logout-btn">
         <a href="#top" on:click={handleLogout}>Logout</a>
       </div>

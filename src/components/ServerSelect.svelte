@@ -108,7 +108,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: url(https://e1.pxfuel.com/desktop-wallpaper/645/664/desktop-wallpaper-dark-gray-minimalist-minimalist-grey.jpg) no-repeat;
+        background: url(images/bg.jpg) no-repeat;
         background-size: cover;
         background-position: center;
     }

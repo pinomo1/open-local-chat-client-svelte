@@ -3,7 +3,8 @@
     import axios from 'axios';
   
     const localStorageKey = 'ipAddress';
-    const wsUrl = `http://${localStorage.getItem(localStorageKey)}:9001/api/register`;
+    const url = localStorage.getItem(localStorageKey);
+    const wsUrl = `http://${url}:9001/api/register`;
     let username = '';
     let password = '';
     let confirmPassword = '';
@@ -61,6 +62,8 @@
                 
             <div class="register-link">
                 <p>Already have an account? <a href="#top" on:click={handleLogin}>Login</a></p>
+                <br>
+                <p>Server: {url}</p>
                 <p><a href="#top" on:click={handleServerChange}>Change server</a></p>
             </div>
         </form>
@@ -85,7 +88,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url(https://e1.pxfuel.com/desktop-wallpaper/645/664/desktop-wallpaper-dark-gray-minimalist-minimalist-grey.jpg) no-repeat;
+    background: url(images/bg.jpg) no-repeat;
     background-size: cover;
     background-position: center;
    }
