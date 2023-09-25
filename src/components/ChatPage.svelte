@@ -89,9 +89,9 @@
     }
   }
 
-  function scrollToBottom() {
+  function scrollToBottom(force: boolean = false) {
     if (chatContainer) {
-      if (chatContainer.scrollHeight - chatContainer.scrollTop < 1000) {
+      if (chatContainer.scrollHeight - chatContainer.scrollTop < 1000 || force) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }
