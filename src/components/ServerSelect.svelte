@@ -1,27 +1,80 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import AnimatedButton from './AnimatedButton.svelte';
+    import axios from 'axios';
     
     const localStorageKey = 'ipAddress';
     let ipAddress = '';
+    
   
-    onMount(() => {
-      const savedIpAddress = localStorage.getItem(localStorageKey);
-      if (savedIpAddress) {
-        const useSavedIpAddress = confirm(`Would you like to use the saved IP address: ${savedIpAddress}?`);
-        if (useSavedIpAddress) {
-          ipAddress = savedIpAddress;
+    function showPopup() {
+      const popup: HTMLElement = document.querySelector('.popup')!;
+      console.log("show");
+      popup.classList.remove('hidden');
+    }
+
+    function hidePopup() {
+      const popup: HTMLElement = document.querySelector('.popup')!;
+      console.log("hide");
+      popup.classList.add('hidden');
+    }
+
+    function getSiteUrl() {
+      return window.location.hostname;
+    }
+
+    function getCheckUrl(url?: string) {
+        if (url) {
+            return 'http://' + url + ':9001/api/canaccess';
         }
-      }
+      return 'http://' + getSiteUrl() + ':9001/api/canaccess';
+    }
+
+    onMount(() => {
+      ipAddress = localStorage.getItem(localStorageKey) || '';
+      let siteUrl = getCheckUrl();
+      axios.post(siteUrl, {})
+        .then((response) => {
+            if (response.status === 200) {
+                showPopup();
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
     });
   
+    function useLocal(){
+        ipAddress = getSiteUrl();
+        saveIpAddress();
+    }
+
     function saveIpAddress() {
-      localStorage.setItem(localStorageKey, ipAddress);
-      window.location.href = '/login';
+      let siteUrl = getCheckUrl(ipAddress);
+        axios.post(siteUrl, {})
+            .then((response) => {
+                console.log(response);
+                if (response.status === 200) {
+                    localStorage.setItem(localStorageKey, ipAddress);
+                    window.location.href = '/login';
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 </script>
 
 <div class="container">
+    <div class="popup hidden">
+        <div class="wrapper">
+            <form action="">
+                <h1>There is a server on this IP address, connect?</h1>
+                <AnimatedButton onClick={useLocal} text="Yes" />
+                <AnimatedButton onClick={hidePopup} text="No" />
+            </form>
+        </div>
+    </div>
     <div class="wrapper">
         <form action="">
             <h1>Enter IP Address</h1>
@@ -45,13 +98,30 @@
         font-family: "Poppins", sans-serif;
     }
     
+    .popup{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .popup.hidden{
+        display: none;
+    }
+
     .container{
         min-height: 100vh;
         background: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: url(https://e1.pxfuel.com/desktop-wallpaper/645/664/desktop-wallpaper-dark-gray-minimalist-minimalist-grey.jpg) no-repeat;
+        background: url(images/bg.jpg) no-repeat;
         background-size: cover;
         background-position: center;
     }

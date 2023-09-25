@@ -1,41 +1,62 @@
 <script lang=ts>
-	import AnimatedButton from "./AnimatedButton.svelte";
     import { onMount } from 'svelte';
+	import AnimatedButton from "./AnimatedButton.svelte";
+    import axios from 'axios';
   
     const localStorageKey = 'ipAddress';
-    const wsUrl = `ws://${localStorage.getItem(localStorageKey)}:9001`;
+    const url = localStorage.getItem(localStorageKey);
+    const wsUrl = `http://${url}:9001/api/register`;
     let username = '';
     let password = '';
     let confirmPassword = '';
 
-    let ws: WebSocket;
+    function getCheckUrl() {
+        return 'http://' + url + ':9001/api/canaccess';
+    }
 
     onMount(() => {
-        ws = new WebSocket(wsUrl);
-        ws.addEventListener('message', handleMessage);
+        let siteUrl = getCheckUrl();
+        axios.post(siteUrl, {})
+        .then((response) => {
+            console.log(response);
+            if (response.status !== 200) {
+                window.location.href = '/';
+                return;
+            }
+        })
+        .catch((error) => {
+            window.location.href = '/';
+        });
     });
-
-    function handleMessage(event: MessageEvent) {
-        const message = event.data;
-        if (message.startsWith('0')) {
-        const errorCode = message.slice(2);
-        alert(`Error: ${errorCode}`);
-        } else if (message.startsWith('1')) {
-        window.location.href = '/login';
-        }
-    }
 
     function handleRegister() {
         if (password !== confirmPassword) {
         console.error('Error: Passwords do not match');
         return;
         }
-        const message = `register ${username} ${password}`;
-        ws.send(message);
+        axios.post(wsUrl, {
+            username: username,
+            password: password
+        })
+        .then((response) => {
+            console.log(response);
+            if (response.status !== 200) {
+                console.log(response.data.error)
+                return;
+            }
+            window.location.href = '/login';
+        })
+        .catch((error) => {
+            console.log(error);
+        });
     }
 
     function handleLogin() {
         window.location.href = '/login';
+    }
+
+    function handleServerChange() {
+        window.location.href = '/';
     }
 </script>
 <div class="container">
@@ -61,6 +82,9 @@
                 
             <div class="register-link">
                 <p>Already have an account? <a href="#top" on:click={handleLogin}>Login</a></p>
+                <br>
+                <p>Server: {url}</p>
+                <p><a href="#top" on:click={handleServerChange}>Change server</a></p>
             </div>
         </form>
     </div>
@@ -84,7 +108,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url(https://e1.pxfuel.com/desktop-wallpaper/645/664/desktop-wallpaper-dark-gray-minimalist-minimalist-grey.jpg) no-repeat;
+    background: url(images/bg.jpg) no-repeat;
     background-size: cover;
     background-position: center;
    }
