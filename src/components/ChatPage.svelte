@@ -4,7 +4,6 @@
   document.title = 'Chat ';
   import { onMount, afterUpdate } from 'svelte';
   import gravatar from 'gravatar';
-  import { afterUpdate } from 'svelte';
   import { io } from 'socket.io-client';
 
 
@@ -62,6 +61,10 @@
   }
 
   function handleSend() {
+    if (isReplying){
+      isReplying = false;
+      ws.emit("chat","@"+replyBody.get("sender")+"  "+ replyBody.get("message")+"\n\n");
+    }
     ws.emit("chat", message);
     message = '';
   }
@@ -107,9 +110,25 @@ function handleReact(sender: string) {
   alert(`React to message from ${sender}`);
 }
 
-function handleReply(sender: string) {
-  // Handle reply action
-  alert(`Reply to message from ${sender}`);
+let isReplying = false;
+let replyBody : Map<string,string> = new Map<string,string>();
+function handleReply(sender: string , message: string) {
+  isReplying = true;
+  //get <p> by id='reply'
+  if(message.length >10){
+    replyBody.set("message",message.slice(0,10)+'...')
+  }else {
+    replyBody.set("message",message)
+
+  }
+  replyBody.set("sender", sender)
+  const rtext = document.getElementById("reply")
+  if(rtext){
+    rtext.innerHTML="->@"+replyBody.get("sender")+" "+replyBody.get("message")
+
+  }
+  
+  // alert(`Reply to message from ${sender}`);
 }
 
   afterUpdate(scrollToBottom);
@@ -128,46 +147,46 @@ function handleReply(sender: string) {
         
       </div>
       <div class="logout-btn">
-        <a href="#top" on:click={handleDisconnect}>Disconnetct</a>
+        <a href="#top" on:click={handleDisconnect}>Disconnect</a>
       </div>
     </div>
     <div class="chat-messages" bind:this={chatContainer}>
       {#each messages as chatMessage, index (index)}
-        {#if index === 0 || chatMessage.sender !== messages[index - 1].sender}
+        {#if index === 0 || chatMessage.username !== messages[index - 1].username}
           <div class="message" key={index} role="button" tabindex="0" aria-label="Message Options" on:mouseenter={showHoverPanel} > 
             <div class="sender-avatar">
-              {#if chatMessage.sender === 'System'}
+              {#if chatMessage.username === 'System'}
               <img src={'https://cdn-icons-png.flaticon.com/512/305/305098.png'} alt="Sender Avatar" />
               {:else}
-              <img src={generateProfilePicture(chatMessage.sender)} alt="Sender Avatar" />
+              <img src={generateProfilePicture(chatMessage.username)} alt="Sender Avatar" />
               {/if}
-          <div class="message" key={index}>
-            <div class="message-content">
-              {#if index === 0 || chatMessage.username !== messages[index - 1].username}
+            </div>
+              <div class="message-content">
                 <div class="sender-name">{chatMessage.username}</div>
-              {/if}
               <div class="message-text" style="white-space: pre-line;">{@html chatMessage.message.replace(/\n/g, "<br>")}</div>
             </div>
-            <div class="message-content">
-              <div class="sender-name">{chatMessage.sender}</div>
-              <div class="message-text" style="white-space: pre-line; padding-top: 2px;position:relative; top:3px">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
-            </div>
-            {#if isHovered}
-              <div class="hover-panel">
-                <!-- <button on:click={() => handleReact(chatMessage.sender)}>React</button> -->
-                <button on:click={() => handleReply(chatMessage.sender)}>Reply</button>
-              </div>
-            {/if}
-          </div>
-          
-        {:else}
-        
-        <div style="padding: 3px; margin: 3px; padding-left: 6.55vh;" class="message" key={index} role="button" tabindex="0" aria-label="Message Options" on:mouseenter={showHoverPanel} >
-          <div class="message-text" style="white-space: pre-line;">{@html chatMessage.text.replace(/\n/g, "<br>")}</div>
+            
           {#if isHovered}
               <div style= "margin:0; padding:0" class="hover-panel">
                 <!-- <button on:click={() => handleReact(chatMessage.sender)}>React</button> -->
-                <button on:click={() => handleReply(chatMessage.sender)}>
+                <button on:click={() => handleReply(chatMessage.username,chatMessage.message)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-reply-all-fill" viewBox="0 0 16 16">
+                    <path d="M8.021 11.9 3.453 8.62a.719.719 0 0 1 0-1.238L8.021 4.1a.716.716 0 0 1 1.079.619V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
+                    <path d="M5.232 4.293a.5.5 0 0 1-.106.7L1.114 7.945a.5.5 0 0 1-.042.028.147.147 0 0 0 0 .252.503.503 0 0 1 .042.028l4.012 2.954a.5.5 0 1 1-.593.805L.539 9.073a1.147 1.147 0 0 1 0-1.946l3.994-2.94a.5.5 0 0 1 .699.106z"/>
+                  </svg>
+                </button>
+              </div>
+          {/if}
+        </div>
+            
+        {:else}
+        
+        <div style="padding: 3px; margin: 3px; padding-left: 8vh;" class="message" key={index} role="button" tabindex="0" aria-label="Message Options" on:mouseenter={showHoverPanel} >
+          <div class="message-text" style="white-space: pre-line;">{@html chatMessage.message.replace(/\n/g, "<br>")}</div>
+          {#if isHovered}
+              <div style= "margin:0; padding:0" class="hover-panel">
+                <!-- <button on:click={() => handleReact(chatMessage.sender)}>React</button> -->
+                <button on:click={() => handleReply(chatMessage.username,chatMessage.message)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-reply-all-fill" viewBox="0 0 16 16">
                     <path d="M8.021 11.9 3.453 8.62a.719.719 0 0 1 0-1.238L8.021 4.1a.716.716 0 0 1 1.079.619V6c1.5 0 6 0 7 8-2.5-4.5-7-4-7-4v1.281c0 .56-.606.898-1.079.62z"/>
                     <path d="M5.232 4.293a.5.5 0 0 1-.106.7L1.114 7.945a.5.5 0 0 1-.042.028.147.147 0 0 0 0 .252.503.503 0 0 1 .042.028l4.012 2.954a.5.5 0 1 1-.593.805L.539 9.073a1.147 1.147 0 0 1 0-1.946l3.994-2.94a.5.5 0 0 1 .699.106z"/>
@@ -184,7 +203,10 @@ function handleReply(sender: string) {
 
 
       <div style="padding-left: 2vh; display:flex" class="">
-        <p>Replied to</p>
+      {#if isReplying}
+        <button style="margin-right: 5px; background-color: #40444b; border: none; color: white; padding: 2px 6px; border-radius: 3px; cursor: pointer; overflow:visible; z-index: 10000 !important;" on:click={() => isReplying = false}>X</button>
+        <p id="reply">->@{replyBody.get("sender")+" "+replyBody.get("message")} </p>
+      {/if}
       </div>
       <div class="input-container">
         <textarea rows="2" placeholder="Type a message..." bind:value={message} on:keydown={handleKeyPress}></textarea>
@@ -309,7 +331,7 @@ function handleReply(sender: string) {
   
     .send-btn {
       cursor: pointer;
-      padding-top: 9px;
+      padding-top: 10px;
       padding-bottom: 9px;
       padding-right: 15px;
       background-color: #40444b;
@@ -346,13 +368,13 @@ function handleReply(sender: string) {
       transition: all 0.2s ease-in-out;
     }
     .chat-header {
-      /* background-color: #313236; */
+      background-color: #313236;
       display: flex;
       justify-content: space-between;
       padding: 10px;
       box-shadow: #36393f 0px 0px 100px 0.5px;
-      background: transparent;
-      backdrop-filter: blur(20px);
+      /* background: transparent; */
+      /* backdrop-filter: blur(20px); */
     }
     
   
@@ -416,7 +438,8 @@ function handleReply(sender: string) {
   gap: 5px;
   padding: 5px;
   margin: 0;
-  z-index: 1;
+  z-index: 100 !important;
+  overflow: visible;
 }
 
 .hover-panel button {
@@ -426,6 +449,8 @@ function handleReply(sender: string) {
   padding: 2px 6px;
   border-radius: 3px;
   cursor: pointer;
+  overflow:visible;
+  z-index: 10000 !important;
 }
 
 .hover-panel button:hover {
