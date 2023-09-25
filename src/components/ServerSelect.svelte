@@ -9,11 +9,13 @@
   
     function showPopup() {
       const popup: HTMLElement = document.querySelector('.popup')!;
+      console.log("show");
       popup.classList.remove('hidden');
     }
 
     function hidePopup() {
       const popup: HTMLElement = document.querySelector('.popup')!;
+      console.log("hide");
       popup.classList.add('hidden');
     }
 
@@ -33,14 +35,13 @@
       let siteUrl = getCheckUrl();
       axios.post(siteUrl, {})
         .then((response) => {
-            console.log(response);
             if (response.status === 200) {
-                const savedIpAddress = localStorage.getItem(localStorageKey);
-                if (savedIpAddress) {
-                    showPopup();
-                }
+                showPopup();
             }
         })
+        .catch((error) => {
+            console.log(error);
+        });
     });
   
     function useLocal(){
