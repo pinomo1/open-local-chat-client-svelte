@@ -46,10 +46,12 @@
 
   function handleJoin(username: string) {
     handleMessage("System", `${username} joined the chat`);
+    users = [...users, username];
   }
 
   function handleLeft(username: string) {
     handleMessage("System", `${username} left the chat`);
+    users = users.filter(user => user !== username);
   }
 
   function handleMessage(username: string, message: string) {
